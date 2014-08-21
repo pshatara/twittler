@@ -4,7 +4,8 @@
     <title>Twittler</title>
     <script src="jquery.js"></script>
     <script src="data_generator.js"></script>
-    <script src="jquery.timeago.js"></script>
+    <script src="jquery.js" type="text/javascript"></script>
+    <script src="jquery.timeago.js" type="text/javascript"></script>
     <link rel="stylesheet" type="text/css" href="style_sheet.css">
   </head>
   <body>
@@ -13,32 +14,67 @@
 
 
     <script>
+      var visitor = prompt("Please enter your username.");
 
       // Function that pulls a refreshed list of tweets generated
-      var updateTweets = function() {
+      var updateTweets = function(user) {
         var $body = $('body');
+
         var index = streams.home.length - 1;
         while(index >= 0){
+
           var tweet = streams.home[index];
           var $tweet = $('<div class="content"></div>');
-          $tweet.text('@' + tweet.user + ': ' + tweet.created_at + '\n' + tweet.message);
-          $tweet.appendTo($body);
+          var $user = $('<div class="user"></div>')
+          var $time = $('<div class="time"></div>')
+          $user.addClass(tweet.user);
+          
+          $user.text('@' + tweet.user);
+          $tweet.text(tweet.message);
+          $time.text($.timeago(tweet.created_at));
+
+          if (!user || user === tweet.user) {
+            $user.appendTo($body);
+            $tweet.appendTo($body);
+            $time.appendTo($body);
+            $('<br class="break">').appendTo($body);
+          }
           index -= 1;
         }
       };
 
-      $(document).ready(function(){
-        updateTweets();
+      var removeContent = function() {
+        $('.user').remove();
+        $('.content').remove();
+        $('.time').remove();
+        $('.break').remove();
+      }
 
+      $(document).ready(function(){
+        //Makes timestamps human friendly
+        $("abbr.timeago").timeago();
+
+        //Initial call to update tweets when the page loads
+        updateTweets();
+        
+        //Add's functionality to the button with class refresh to update tweets when clicked
         $('.refresh').click(function() {
-          $('.content').empty();
+          removeContent();
           updateTweets();
         });
 
+        //Filters content to display only a single users' entry when the users' name is clicked
+        $('body').on('click', '.user', function() {
+          removeContent();
+          updateTweets(this.classList[1]);
+        });
+
+        //Sends user tweet to data_generator.js and refreshes page with user tweet added
         $('.submit').click(function() {
           var toAdd = $('textarea[class=input]').val();
-          // addTweet(toAdd);
-          $('.content').empty();
+          // writeTweet(toAdd);
+          // strams.home[streams.home.length - 1].push({user: visitor, message: toAdd});
+          removeContent();
           updateTweets();
           $(".input").val('');
         });
